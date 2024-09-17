@@ -1,9 +1,5 @@
 from utils.model_utils import initialize_mtcnn
 
-from facenet_pytorch import MTCNN
-import cv2
-
-mtcnn = initialize_mtcnn()
 
 def detect_faces(frame):
     """
@@ -15,8 +11,10 @@ def detect_faces(frame):
     Returns:
     - boxes (list): List of bounding boxes for detected faces, each in (x1, y1, x2, y2) format.
     """
-    boxes, _ = mtcnn.detect(frame)
+    model = initialize_mtcnn()
+    boxes, _ = model.detect(frame)
     return boxes if boxes is not None else []
+
 
 def crop_faces(frame, boxes):
     """

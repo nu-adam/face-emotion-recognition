@@ -1,6 +1,5 @@
 import torch
 from torchvision import transforms
-from PIL import Image
 
 
 def preprocess_face(face_crop, input_size=(224, 224)):
