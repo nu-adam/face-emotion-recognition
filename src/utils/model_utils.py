@@ -80,23 +80,21 @@ def train_vgg19(train_loader, model, criterion, optimizer, num_epochs=10, device
     
     for epoch in range(num_epochs):
         running_loss = 0.0
-        with tqdm(train_loader, unit="batch", desc=f"Epoch [{epoch+1}/{num_epochs}]", ncols=100) as pbar:
-            for inputs, labels in train_loader:
-                inputs, labels = inputs.to(device), labels.to(device)
-                
-                optimizer.zero_grad()
-                
-                # Forward pass
-                outputs = model(inputs)
-                loss = criterion(outputs, labels)
-                
-                # Backward pass
-                loss.backward()
-                optimizer.step()
-                
-                running_loss += loss.item() * inputs.size(0)
 
-                pbar.set_postfix(loss=loss.item())
+        for inputs, labels in tqdm(train_loader, unit="batch", desc=f"Epoch [{epoch+1}/{num_epochs}]", ncols=100):
+            inputs, labels = inputs.to(device), labels.to(device)
+            
+            optimizer.zero_grad()
+            
+            # Forward pass
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            
+            # Backward pass
+            loss.backward()
+            optimizer.step()
+            
+            running_loss += loss.item() * inputs.size(0)
         
         epoch_loss = running_loss / len(train_loader.dataset)
         print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.4f}')
@@ -123,13 +121,12 @@ def evaluate_vgg19(model, data_loader, device):
     all_labels = []
 
     with torch.no_grad():
-        with tqdm(data_loader, unit="batch", desc="Evaluating", ncols=100) as pbar:
-            for images, labels in data_loader:
-                images, labels = images.to(device), labels.to(device)
-                outputs = model(images)
-                _, preds = torch.max(outputs, 1)
-                all_preds.extend(preds.cpu().numpy())
-                all_labels.extend(labels.cpu().numpy())
+        for images, labels in tqdm(data_loader, unit="batch", desc="Evaluating", ncols=100):
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            _, preds = torch.max(outputs, 1)
+            all_preds.extend(preds.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
     
     accuracy = accuracy_score(all_labels, all_preds)
     precision, recall, f1_score, _ = precision_recall_fscore_support(all_labels, all_preds, average='weighted')
