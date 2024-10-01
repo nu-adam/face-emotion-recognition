@@ -28,6 +28,25 @@ class TransformerEncoder(nn.Module):
     def forward(self, x):
         x = self.transformer(x)
         return x  # Output: (batch_size, 49, embed_dim)
+    
+
+class ProjectionNetwork(nn.Module):
+    """
+    A projection network to reduce the dimensionality of the VGG feature maps.
+    """
+    def __init__(self, input_dim=512, output_dim=256):
+        super(ProjectionNetwork, self).__init__()
+        self.fc1 = nn.Linear(input_dim, 512)
+        self.relu1 = nn.ReLU()
+        self.fc2 = nn.Linear(512, output_dim)
+        self.relu2 = nn.ReLU()
+
+    def forward(self, x):
+        x = self.fc1(x)
+        x = self.relu1(x)
+        x = self.fc2(x)
+        x = self.relu2(x)
+        return x  # Output: (batch_size, 49, output_dim)
 
 
 class FaceEmotionModel(nn.Module):
@@ -42,7 +61,7 @@ class FaceEmotionModel(nn.Module):
         super(FaceEmotionModel, self).__init__()
         self.feature_extractor = VGGFeatureExtractor()
         self.transformer = TransformerEncoder(embed_dim, num_heads, num_layers)
-        self.projection = nn.Linear(512, embed_dim)
+        self.projection = ProjectionNetwork(input_dim=512, output_dim=embed_dim)
         self.positional_encoding = nn.Parameter(torch.randn(1, 49, embed_dim))
         self.classifier = nn.Linear(embed_dim, num_classes)
         
