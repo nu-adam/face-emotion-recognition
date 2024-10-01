@@ -1,4 +1,3 @@
-from facenet_pytorch import MTCNN
 from tqdm import tqdm
 import torch
 import torch.nn as nn
@@ -6,49 +5,13 @@ from torchvision import models
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 
-def initialize_mtcnn():
+def train_model(train_loader, model, criterion, optimizer, num_epochs=10, device='cuda'):
     """
-    Initializes the MTCNN model for face detection.
-
-    Returns:
-    - mtcnn (MTCNN): An initialized MTCNN model.
-    """
-    mtcnn = MTCNN(keep_all=True)
-    return mtcnn
-
-
-def initialize_vgg19(num_classes=7):
-    """
-    Initializes a pretrained VGG19 model with transfer learning for emotion recognition.
-    
-    Loads a pre-trained VGG19 model, freezes its convolutional layers, and modifies
-    the classifier to match the number of emotion classes.
-
-    Args:
-    - num_classes (int): The number of output classes for emotion recognition.
-
-    Returns:
-    - model (nn.Module): The modified VGG19 model.
-    """
-    model = models.vgg19(weights=models.VGG19_Weights.DEFAULT)
-    
-    # Freeze the convolutional layers
-    for param in model.features.parameters():
-        param.requires_grad = False
-    
-    # Replace the classifier to match the number of classes
-    model.classifier[6] = nn.Linear(in_features=4096, out_features=num_classes)
-    
-    return model
-
-
-def train_vgg19(train_loader, model, criterion, optimizer, num_epochs=10, device='cuda'):
-    """
-    Trains the VGG19 model on the training data using transfer learning.
+    Trains the Face Emotion Recognition model on the training data using transfer learning.
     
     Args:
     - train_loader (DataLoader): DataLoader for the training dataset.
-    - model (nn.Module): VGG19 model for training.
+    - model (nn.Module): Face Emotion Recognition model for training.
     - criterion (nn.Module): Loss function for training.
     - optimizer (torch.optim.Optimizer): Optimizer for training.
     - num_epochs (int): Number of epochs to train the model.
@@ -80,17 +43,17 @@ def train_vgg19(train_loader, model, criterion, optimizer, num_epochs=10, device
         epoch_loss = running_loss / len(train_loader.dataset)
         print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.4f}')
         
-        checkpoint_path = f'checkpoints/vgg19/vgg19_epoch_{epoch+1}.pth'
+        checkpoint_path = f'checkpoints/model_epoch_{epoch+1}.pth'
         torch.save(model.state_dict(), checkpoint_path)
         print(f'Saved checkpoint: {checkpoint_path}')
 
 
-def evaluate_vgg19(model, data_loader, device):
+def evaluate_model(model, data_loader, device):
     """
-    Evaluates the performance of the VGG19 model on the test dataset.
+    Evaluates the performance of the Face Emotion Recognition model on the test dataset.
 
     Args:
-    - model (torch.nn.Module): The trained VGG19 model.
+    - model (torch.nn.Module): The trained Face Emotion Recognition model.
     - data_loader (torch.utils.data.DataLoader): DataLoader for the test dataset.
     - device (torch.device): Device to perform computations on ('cuda' or 'cpu').
 

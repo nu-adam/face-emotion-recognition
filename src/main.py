@@ -1,6 +1,5 @@
 from utils.video_utils import read_video
-from utils.face_detection import detect_faces, crop_faces
-from utils.face_processing import preprocess_face
+from utils.preprocessing import detect_faces, crop_faces, preprocess_face
 from inference import inference
 
 import torch
@@ -34,7 +33,7 @@ def main(video_path, model_path):
 
 
 if __name__ == '__main__':
-    video_path = "videos/video_2.mp4"
-    model_path = "checkpoints/"
+    VIDEO_PATH = "videos/video_2.mp4"
+    MODEL_PATH = "checkpoints/"
 
-    main(video_path, model_path)
+    main(VIDEO_PATH, MODEL_PATH)

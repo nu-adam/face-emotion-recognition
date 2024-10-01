@@ -15,7 +15,7 @@ def inference(batch_tensors, model_path, device='cpu'):
 
     emotion_classes = ['angry', 'disgust', 'fear', 'happy', 'sad', 'surprise', 'neutral']
 
-    model = FaceEmotionModel(embed_dim=512, num_heads=4, num_layers=2)
+    model = FaceEmotionModel(embed_dim=512, num_heads=4, num_layers=2, num_classes=7)
     model.to(device)
     model.eval()
     
