@@ -1,44 +1,40 @@
-from utils.video_utils import read_video, save_video
+from utils.video_utils import read_video
 from utils.face_detection import detect_faces, crop_faces
-from utils.visualization import draw_face_boxes, add_emotion_labels
-from utils.face_processing import batch_process_faces
+from utils.face_processing import preprocess_face
 from inference import inference
 
-import cv2
+import torch
 
 
-def main():
-    video_path = "videos/video_3.mp4"
-    output_path = "videos/output_video_3.mp4"
-    model_path = "checkpoints/vgg19/vgg19_epoch_10.pth"
+def main(video_path, model_path):
+    """
+    Main function for processing a video for emotion recognition.
 
-    output_frames = []
+    Args:
+        video_path (str): Path to the input video file.
+        model_path (str): Path to the trained model for inference.
+    """
     frames, fps = read_video(video_path)
-
     frames_per_second = int(fps)
-    last_labels = []
+
+    batch_tensors = []
 
     for frame_count, frame in frames:
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        boxes = detect_faces(frame_rgb)
+        if frame_count % frames_per_second == 0:
+            boxes = detect_faces(frame)
+            if boxes is not None:
+                face_crop = crop_faces(frame, boxes[0])
+                face_tensor = preprocess_face(face_crop)
+                batch_tensors.append(face_tensor)
+    
+    batch_tensors = torch.stack(batch_tensors)
 
-        if boxes is not None:
-            if frame_count % frames_per_second == 0:
-                labels = []
-                face_crops = crop_faces(frame_rgb, boxes)
-                face_tensors = batch_process_faces(face_crops)
-                labels = inference(face_tensors, model_path)
-                last_labels = labels
-            else:
-                labels = last_labels
-            
-            frame = draw_face_boxes(frame, boxes)
-            frame = add_emotion_labels(frame, boxes, labels)
-
-        output_frames.append(frame)
-
-    save_video(output_path, output_frames, fps)
+    output = inference(batch_tensors, model_path)
+    print(output)
 
 
 if __name__ == '__main__':
-    main()
+    video_path = "videos/video_2.mp4"
+    model_path = "checkpoints/"
+
+    main(video_path, model_path)

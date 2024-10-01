@@ -17,25 +17,6 @@ def initialize_mtcnn():
     return mtcnn
 
 
-def initialize_resnet18():
-    """
-    Initializes a pretrained ResNet18 model for emotion recognition.
-
-    Returns:
-    - model (torch.nn.Module): Pretrained emotion recognition model.
-    """
-    model = models.resnet18(pretrained=True)
-    
-    # Modify the final layer to match the number of emotion classes
-    num_classes = 7
-    model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
-    
-    # model.load_state_dict(torch.load('models/pretrained_weights.pth'))
-    model.eval()
-
-    return model
-
-
 def initialize_vgg19(num_classes=7):
     """
     Initializes a pretrained VGG19 model with transfer learning for emotion recognition.
