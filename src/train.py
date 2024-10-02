@@ -23,7 +23,6 @@ def train(data_dir, num_classes, batch_size=32, learning_rate=0.001, num_epochs=
     Returns:
     - None
     """
-    
     os.makedirs(checkpoint_dir, exist_ok=True)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -38,8 +37,7 @@ def train(data_dir, num_classes, batch_size=32, learning_rate=0.001, num_epochs=
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
     # Train the model
-    train_model(train_loader, val_loader, model, criterion, optimizer, num_epochs=num_epochs, device=device)
-    print("Completed training the model")
+    train_model(train_loader, val_loader, model, criterion, optimizer, num_epochs, device, checkpoint_dir)
 
     # Evaluate the model
     metrics = evaluate_model(model, test_loader, device)

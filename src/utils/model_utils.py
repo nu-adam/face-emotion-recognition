@@ -16,7 +16,7 @@ def save_model(state, checkpoint_dir='results/checkpoints'):
     torch.save(state, filename)
 
 
-def train_one_epoch(model, train_loader, criterion, optimizer, device):
+def train_one_epoch(model, train_loader, criterion, optimizer, epoch, num_epochs, device):
     """
     Trains the model on the train dataset for one epoch.
 
@@ -25,6 +25,8 @@ def train_one_epoch(model, train_loader, criterion, optimizer, device):
     - train_loader (torch.utils.data.DataLoader): DataLoader for the training dataset.
     - criterion (torch.nn.Module): Loss function used for training.
     - optimizer (torch.optim.Optimizer): Optimizer to update model weights.
+    - epoch (int): Current epoch number.
+    - num_epochs (int): Total number of epochs to train.
     - device (torch.device): Device to use for training ('cuda' or 'cpu').
 
     Returns:
@@ -33,7 +35,7 @@ def train_one_epoch(model, train_loader, criterion, optimizer, device):
     model.train()
     running_loss = 0.0
 
-    for inputs, labels in tqdm(train_loader, unit="batch", desc="Training", ncols=100):
+    for inputs, labels in tqdm(train_loader, unit="batch", desc=f"Epoch {epoch+1}/{num_epochs} - Training", ncols=100):
         inputs, labels = inputs.to(device), labels.to(device)
         
         optimizer.zero_grad()
@@ -52,7 +54,7 @@ def train_one_epoch(model, train_loader, criterion, optimizer, device):
     return epoch_loss
 
 
-def validate_one_epoch(model, val_loader, criterion, device):
+def validate_one_epoch(model, val_loader, criterion, epoch, num_epochs, device):
     """
     Validates the model on the validation dataset for one epoch.
 
@@ -60,6 +62,8 @@ def validate_one_epoch(model, val_loader, criterion, device):
     - model (torch.nn.Module): The model to be validated.
     - val_loader (torch.utils.data.DataLoader): DataLoader for the validation dataset.
     - criterion (torch.nn.Module): Loss function used for validation.
+    - epoch (int): Current epoch number.
+    - num_epochs (int): Total number of epochs to validate.
     - device (torch.device): Device to use for validation ('cuda' or 'cpu').
 
     Returns:
@@ -71,7 +75,7 @@ def validate_one_epoch(model, val_loader, criterion, device):
     total = 0
 
     with torch.no_grad():
-        for inputs, labels in tqdm(val_loader, unit="batch", desc="Validation", ncols=100):
+        for inputs, labels in tqdm(val_loader, unit="batch", desc=f"Epoch {epoch+1}/{num_epochs} - Validation", ncols=100):
             inputs, labels = inputs.to(device), labels.to(device)
 
             outputs = model(inputs)
@@ -103,9 +107,6 @@ def train_model(train_loader, val_loader, model, criterion, optimizer, num_epoch
     - device (str): Device to use for training ('cuda' or 'cpu').
     - checkpoint_dir (str): Directory to save the model checkpoints.
     """
-    if not os.path.exists(checkpoint_dir):
-        os.makedirs(checkpoint_dir)
-    
     best_loss = float('inf')
 
     for epoch in range(num_epochs):
