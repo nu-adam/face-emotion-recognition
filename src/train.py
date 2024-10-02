@@ -8,7 +8,7 @@ from utils.model_utils import train_model, evaluate_model
 from utils.models import FaceEmotionModel
 
 
-def train(data_dir, num_classes, batch_size=32, learning_rate=0.001, num_epochs=10, checkpoint_dir='checkpoints/'):
+def train(data_dir, num_classes, batch_size=32, learning_rate=0.001, num_epochs=10, checkpoint_dir='results/checkpoints/'):
     """
     Training for the Face Emotion Recognition model using transfer learning on the specified dataset.
 
@@ -18,7 +18,7 @@ def train(data_dir, num_classes, batch_size=32, learning_rate=0.001, num_epochs=
     - batch_size (int, optional): Number of samples per batch to load. Default is 32.
     - learning_rate (float, optional): Learning rate for the optimizer. Default is 0.001.
     - num_epochs (int, optional): Number of epochs to train the model. Default is 10.
-    - checkpoint_dir (str, optional): Directory to save model checkpoints. Default is 'checkpoints/'.
+    - checkpoint_dir (str, optional): Directory to save model checkpoints. Default is 'results/checkpoints/'.
 
     Returns:
     - None
@@ -26,21 +26,19 @@ def train(data_dir, num_classes, batch_size=32, learning_rate=0.001, num_epochs=
     
     os.makedirs(checkpoint_dir, exist_ok=True)
 
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f'Using device: {device}')
 
     # Load the dataset
-    train_loader, test_loader = load_data(data_dir, batch_size=batch_size)
+    train_loader, val_loader, test_loader = load_data(data_dir, batch_size=batch_size)
 
     # Initialize the model
-    model = FaceEmotionModel(embed_dim=512, num_heads=4, num_layers=2, num_classes=7)
-    model = model.to(device)
-
+    model = FaceEmotionModel(embed_dim=512, num_heads=4, num_layers=2, num_classes=num_classes).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
     # Train the model
-    train_model(train_loader, model, criterion, optimizer, num_epochs=num_epochs, device=device)
+    train_model(train_loader, val_loader, model, criterion, optimizer, num_epochs=num_epochs, device=device)
     print("Completed training the model")
 
     # Evaluate the model
@@ -57,7 +55,7 @@ if __name__ == '__main__':
     NUM_CLASSES = 7
     BATCH_SIZE = 32
     LEARNING_RATE = 0.001
-    NUM_EPOCHS = 10
-    CHECKPOINT_DIR = 'checkpoints/'
+    NUM_EPOCHS = 1
+    CHECKPOINT_DIR = 'results/checkpoints/'
 
     train(DATA_DIR, NUM_CLASSES, BATCH_SIZE, LEARNING_RATE, NUM_EPOCHS, CHECKPOINT_DIR)

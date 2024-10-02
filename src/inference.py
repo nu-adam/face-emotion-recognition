@@ -4,7 +4,7 @@ from utils.models import FaceEmotionModel
 
 def inference(batch_tensors, model_path, device='cpu'):
     """
-    Recognizes emotions for a list of face crops.
+    Recognizes emotions for a batch of face tensors.
 
     Args:
     - batch_tensors (list): List of preprocessed face tensors.
@@ -15,8 +15,8 @@ def inference(batch_tensors, model_path, device='cpu'):
 
     emotion_classes = ['angry', 'disgust', 'fear', 'happy', 'sad', 'surprise', 'neutral']
 
-    model = FaceEmotionModel(embed_dim=256, num_heads=4, num_layers=2, num_classes=7)
-    model.to(device)
+    model = FaceEmotionModel(embed_dim=256, num_heads=4, num_layers=2, num_classes=7).to(device)
+    model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
     
     labels = []

@@ -164,4 +164,4 @@ cython_debug/
 # Custom
 dataset/
 videos/
-checkpoints/
+results/
