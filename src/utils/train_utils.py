@@ -1,7 +1,5 @@
-import os
 from tqdm import tqdm
 import torch
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 
 def save_model(state, checkpoint_dir='results/checkpoints'):
@@ -93,7 +91,7 @@ def validate_one_epoch(model, val_loader, criterion, epoch, num_epochs, device):
     return epoch_loss, accuracy
 
 
-def train_model(train_loader, val_loader, model, criterion, optimizer, num_epochs=10, device='cuda', checkpoint_dir='results/checkpoints'):
+def train_model(train_loader, val_loader, model, criterion, optimizer, num_epochs=10, device='cuda', checkpoint_dir='results/checkpoints', logger=None):
     """
     Trains and validates the Face Emotion Recognition model using specified model.
     
@@ -107,14 +105,20 @@ def train_model(train_loader, val_loader, model, criterion, optimizer, num_epoch
     - device (str): Device to use for training ('cuda' or 'cpu').
     - checkpoint_dir (str): Directory to save the model checkpoints.
     """
+    logger.info(f'Training the model for {num_epochs} epochs...')
+    
     best_loss = float('inf')
 
     for epoch in range(num_epochs):
         # Train for one epoch
-        train_loss = train_one_epoch(model, train_loader, criterion, optimizer, device)
+        train_loss = train_one_epoch(model, train_loader, criterion, optimizer, epoch, num_epochs, device)
+
+        logger.info(f'Epoch {epoch+1}/{num_epochs} - Training Loss: {train_loss:.4f}')
 
         # Validate after one epoch
-        val_loss, val_accuracy = validate_one_epoch(model, val_loader, criterion, device)
+        val_loss, val_accuracy = validate_one_epoch(model, val_loader, criterion, epoch, num_epochs, device)
+
+        logger.info(f'Epoch {epoch+1}/{num_epochs} - Validation Loss: {val_loss:.4f}, Accuracy: {val_accuracy*100:.2f}%')
 
         # Save the best model checkpoint
         if val_loss  < best_loss:
@@ -129,58 +133,8 @@ def train_model(train_loader, val_loader, model, criterion, optimizer, num_epoch
             }
             save_model(checkpoint, checkpoint_dir=checkpoint_dir)
 
+            logger.info(f'Model checkpoint saved at epoch {epoch+1} to {checkpoint_dir}')
 
-def compute_metrics(all_labels, all_preds):
-    """
-    Computes accuracy, precision, recall, and F1-score from predictions and ground truth labels.
-
-    Args:
-    - all_labels (list or np.array): True labels.
-    - all_preds (list or np.array): Model predictions.
-
-    Returns:
-    - dict: A dictionary containing accuracy, precision, recall, and F1-score.
-    """
-    accuracy = accuracy_score(all_labels, all_preds)
-    precision, recall, f1_score, _ = precision_recall_fscore_support(
-        all_labels, all_preds, average='weighted', zero_division=0)
+        logger.info(f'Epoch {epoch+1}/{num_epochs} - Best Validation Loss: {best_loss:.4f}')
     
-    metrics = {
-        'accuracy': accuracy,
-        'precision': precision,
-        'recall': recall,
-        'f1_score': f1_score
-    }
-
-    return metrics
-
-
-def evaluate_model(model, data_loader, device):
-    """
-    Evaluates the performance of the Face Emotion Recognition model on the test dataset.
-
-    Args:
-    - model (torch.nn.Module): The trained Face Emotion Recognition model.
-    - data_loader (torch.utils.data.DataLoader): DataLoader for the test dataset.
-    - device (torch.device): Device to perform computations on ('cuda' or 'cpu').
-
-    Returns:
-    - dict: A dictionary containing accuracy, precision, recall, and F1-score.
-    """
-    model.eval()
-    all_preds = []
-    all_labels = []
-
-    with torch.no_grad():
-        for images, labels in tqdm(data_loader, unit="batch", desc="Evaluation", ncols=100):
-            images, labels = images.to(device), labels.to(device)
-
-            outputs = model(images)
-            _, preds = torch.max(outputs, 1)
-
-            all_preds.extend(preds.cpu().numpy())
-            all_labels.extend(labels.cpu().numpy())
-    
-    metrics = compute_metrics(all_labels, all_preds)
-
-    return metrics
+    logger.info('Training finished successfully.')
