@@ -2,7 +2,7 @@ from tqdm import tqdm
 import torch
 
 
-def save_model(state, checkpoint_dir='results/checkpoints'):
+def save_model(state, checkpoint_dir):
     """
     Saves the model state to a checkpoint file.
 
@@ -91,7 +91,7 @@ def validate_one_epoch(model, val_loader, criterion, epoch, num_epochs, device):
     return epoch_loss, accuracy
 
 
-def train_model(train_loader, val_loader, model, criterion, optimizer, num_epochs=10, device='cuda', checkpoint_dir='results/checkpoints', logger=None):
+def train_model(train_loader, val_loader, model, criterion, optimizer, num_epochs, device, checkpoint_dir, logger):
     """
     Trains and validates the Face Emotion Recognition model using specified model.
     
@@ -121,7 +121,7 @@ def train_model(train_loader, val_loader, model, criterion, optimizer, num_epoch
         logger.info(f'Epoch {epoch+1}/{num_epochs} - Validation Loss: {val_loss:.4f}, Accuracy: {val_accuracy*100:.2f}%')
 
         # Save the best model checkpoint
-        if val_loss  < best_loss:
+        if val_loss < best_loss:
             best_loss = val_loss 
             checkpoint = {
             'epoch': epoch + 1,

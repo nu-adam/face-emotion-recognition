@@ -28,7 +28,7 @@ def compute_metrics(all_labels, all_preds):
     return metrics
 
 
-def evaluate_model(model, data_loader, device, logger=None):
+def evaluate_model(model, data_loader, device, logger):
     """
     Evaluates the performance of the Face Emotion Recognition model on the test dataset.
 
