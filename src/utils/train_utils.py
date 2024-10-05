@@ -91,7 +91,7 @@ def validate_one_epoch(model, val_loader, criterion, epoch, num_epochs, device):
     return epoch_loss, accuracy
 
 
-def train_model(train_loader, val_loader, model, criterion, optimizer, num_epochs, device, checkpoint_dir, logger):
+def train_model(train_loader, val_loader, model, criterion, optimizer, scheduler, num_epochs, device, checkpoint_dir, logger):
     """
     Trains and validates the Face Emotion Recognition model using specified model.
     
@@ -119,6 +119,12 @@ def train_model(train_loader, val_loader, model, criterion, optimizer, num_epoch
         val_loss, val_accuracy = validate_one_epoch(model, val_loader, criterion, epoch, num_epochs, device)
 
         logger.info(f'Epoch {epoch+1}/{num_epochs} - Validation Loss: {val_loss:.4f}, Accuracy: {val_accuracy*100:.2f}%')
+
+        # Step the scheduler
+        scheduler.step()
+
+        current_lr = optimizer.param_groups[0]['lr']
+        logger.info(f'Epoch {epoch+1}/{num_epochs} - Learning Rate: {current_lr:.6f}')
 
         # Save the best model checkpoint
         if val_loss < best_loss:

@@ -11,7 +11,7 @@ from utils.models import FaceEmotionModel
 from utils.logger import setup_logger
 
 
-def train(data_dir, num_classes, batch_size, learning_rate, weight_decay, num_epochs, checkpoint_dir, log_dir):
+def train(data_dir, num_classes, batch_size, learning_rate, num_epochs, checkpoint_dir, log_dir):
     """
     Training for the Face Emotion Recognition model using transfer learning on the specified dataset.
 
@@ -40,9 +40,10 @@ def train(data_dir, num_classes, batch_size, learning_rate, weight_decay, num_ep
     logger.info(f'Dataset loaded from {data_dir}.')
 
     # Initialize the model
-    model = FaceEmotionModel(embed_dim=512, num_heads=4, num_layers=2, dropout_rate=0.5, num_classes=num_classes).to(device)
+    model = FaceEmotionModel(embed_dim=512, num_heads=4, num_layers=2, num_classes=num_classes).to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs, eta_min=0)
 
     logger.info(f'Configuration:\n'
                 f'Data Directory: {data_dir}\n'
@@ -54,7 +55,7 @@ def train(data_dir, num_classes, batch_size, learning_rate, weight_decay, num_ep
                 f'Model architecture:\n{model}')
 
     # Train the model
-    train_model(train_loader, val_loader, model, criterion, optimizer, num_epochs, device, checkpoint_dir, logger)
+    train_model(train_loader, val_loader, model, criterion, optimizer, scheduler, num_epochs, device, checkpoint_dir, logger)
 
     # Evaluate the model
     evaluate_model(model, test_loader, device, logger)
@@ -65,10 +66,9 @@ if __name__ == '__main__':
     DATA_DIR = r'C:\dev\face-emotion-recognition\dataset'
     NUM_CLASSES = 7
     BATCH_SIZE = 32
-    LEARNING_RATE = 0.0001
-    WEIGHT_DECAY = 0.0001
-    NUM_EPOCHS = 1
+    LEARNING_RATE = 0.0005
+    NUM_EPOCHS = 15
     CHECKPOINT_DIR = 'results/checkpoints/'
     LOG_DIR = 'results/logs/'
 
-    train(DATA_DIR, NUM_CLASSES, BATCH_SIZE, LEARNING_RATE, WEIGHT_DECAY, NUM_EPOCHS, CHECKPOINT_DIR, LOG_DIR)
+    train(DATA_DIR, NUM_CLASSES, BATCH_SIZE, LEARNING_RATE, NUM_EPOCHS, CHECKPOINT_DIR, LOG_DIR)
