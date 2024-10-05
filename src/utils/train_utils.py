@@ -14,7 +14,7 @@ def save_model(state, checkpoint_dir):
     torch.save(state, filename)
 
 
-def train_one_epoch(model, train_loader, criterion, optimizer, epoch, num_epochs, device):
+def train_one_epoch(model, train_loader, criterion, optimizer, scaler, epoch, num_epochs, device):
     """
     Trains the model on the train dataset for one epoch.
 
@@ -39,16 +39,19 @@ def train_one_epoch(model, train_loader, criterion, optimizer, epoch, num_epochs
         optimizer.zero_grad()
 
         # Forward pass
-        outputs = model(inputs)
-        loss = criterion(outputs, labels)
+        with torch.autocast(device_type=str(device), dtype=torch.float16):
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
         
         # Backward pass
-        loss.backward()
-        optimizer.step()
+        scaler.scale(loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
         
         running_loss += loss.item() * inputs.size(0)
 
     epoch_loss = running_loss / len(train_loader.dataset)
+    
     return epoch_loss
 
 
@@ -76,8 +79,11 @@ def validate_one_epoch(model, val_loader, criterion, epoch, num_epochs, device):
         for inputs, labels in tqdm(val_loader, unit="batch", desc=f"Epoch {epoch+1}/{num_epochs} - Validation", ncols=100):
             inputs, labels = inputs.to(device), labels.to(device)
 
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
+            with torch.autocast(device_type=str(device), dtype=torch.float16):
+                outputs = model(inputs)
+                loss = criterion(outputs, labels)
+            # outputs = model(inputs)
+            # loss = criterion(outputs, labels)
 
             running_loss += loss.item() * inputs.size(0)
             
@@ -91,7 +97,7 @@ def validate_one_epoch(model, val_loader, criterion, epoch, num_epochs, device):
     return epoch_loss, accuracy
 
 
-def train_model(train_loader, val_loader, model, criterion, optimizer, num_epochs, device, checkpoint_dir, logger):
+def train_model(train_loader, val_loader, model, criterion, optimizer, scaler, num_epochs, device, checkpoint_dir, logger):
     """
     Trains and validates the Face Emotion Recognition model using specified model.
     
@@ -111,7 +117,7 @@ def train_model(train_loader, val_loader, model, criterion, optimizer, num_epoch
 
     for epoch in range(num_epochs):
         # Train for one epoch
-        train_loss = train_one_epoch(model, train_loader, criterion, optimizer, epoch, num_epochs, device)
+        train_loss = train_one_epoch(model, train_loader, criterion, optimizer, scaler, epoch, num_epochs, device)
 
         logger.info(f'Epoch {epoch+1}/{num_epochs} - Training Loss: {train_loss:.4f}')
 
