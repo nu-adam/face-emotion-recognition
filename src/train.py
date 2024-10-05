@@ -40,7 +40,7 @@ def train(data_dir, num_classes, batch_size, learning_rate, weight_decay, num_ep
     logger.info(f'Dataset loaded from {data_dir}.')
 
     # Initialize the model
-    model = FaceEmotionModel(embed_dim=512, num_heads=4, num_layers=2, dropout_rate=0.5, num_classes=num_classes).to(device)
+    model = FaceEmotionModel(embed_dim=512, num_heads=4, num_layers=2, num_classes=num_classes).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
@@ -65,8 +65,8 @@ if __name__ == '__main__':
     DATA_DIR = r'C:\dev\face-emotion-recognition\dataset'
     NUM_CLASSES = 7
     BATCH_SIZE = 32
-    LEARNING_RATE = 0.0001
-    WEIGHT_DECAY = 0.0001
+    LEARNING_RATE = 0.0005
+    WEIGHT_DECAY = 0.0005
     NUM_EPOCHS = 1
     CHECKPOINT_DIR = 'results/checkpoints/'
     LOG_DIR = 'results/logs/'
