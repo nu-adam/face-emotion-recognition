@@ -44,6 +44,8 @@ def train(data_dir, num_classes, batch_size, learning_rate, num_epochs, checkpoi
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs, eta_min=0)
+    scaler = torch.GradScaler(str(device))
+    max_grad = 1.0
 
     logger.info(f'Configuration:\n'
                 f'Data Directory: {data_dir}\n'
@@ -55,7 +57,7 @@ def train(data_dir, num_classes, batch_size, learning_rate, num_epochs, checkpoi
                 f'Model architecture:\n{model}')
 
     # Train the model
-    train_model(train_loader, val_loader, model, criterion, optimizer, scheduler, num_epochs, device, checkpoint_dir, logger)
+    train_model(train_loader, val_loader, model, criterion, optimizer, scheduler, max_grad, scaler, num_epochs, device, checkpoint_dir, logger)
 
     # Evaluate the model
     evaluate_model(model, test_loader, device, logger)
